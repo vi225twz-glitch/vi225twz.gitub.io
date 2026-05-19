@@ -111,7 +111,7 @@ html,body{height:100%;font-family:'IBM Plex Sans Thai',sans-serif;background:var
 /* Avatar setup */
 .av-center{display:flex;flex-direction:column;align-items:center;gap:9px;margin-bottom:20px;}
 .av-big{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;cursor:pointer;box-shadow:0 0 0 3px var(--glow),var(--sh);transition:box-shadow .18s;position:relative;}
-.av-big:hover{box-shadow:0 0 0 4px var(--accent),var(--sh);}
+.av-big:hover {box-shadow:0 0 0 4px var(--accent),var(--sh);}
 .av-big img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .av-ov{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s;font-size:18px;}
 .av-big:hover .av-ov{opacity:1;}
@@ -492,9 +492,7 @@ const db = firebase.database();
 const EMOJIS=['😊','😂','🥰','😎','🤩','😜','🤔','😢','😡','👍','❤️','🔥','✨','🎉','🙏','💪','🤝','👀','🫡','🥳','😅','🤣','🥺','😴','🫠','🐱','🐶','🦊','🐼','🦁','🐸','🌸','⭐','🍀','🎵','🚀','🌈','💎','🎯','🏄'];
 const COLORS=['linear-gradient(135deg,#5b5bd6,#8b8bff)','linear-gradient(135deg,#fb7185,#f43f5e)','linear-gradient(135deg,#2dd4bf,#0d9488)','linear-gradient(135deg,#a78bfa,#7c3aed)','linear-gradient(135deg,#fbbf24,#f59e0b)','linear-gradient(135deg,#34d399,#059669)','linear-gradient(135deg,#60a5fa,#2563eb)','linear-gradient(135deg,#f97316,#ea580c)','linear-gradient(135deg,#e879f9,#a21caf)','linear-gradient(135deg,#94a3b8,#475569)'];
 
-// ════════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════════
+// ── STATE ──
 let me = null;          
 let profiles = [];      
 let messages = [];      
@@ -505,16 +503,13 @@ let crDraft = {emoji:'😊',color:COLORS[0],photo:null};
 let mpDraft = {emoji:'😊',color:COLORS[0],photo:null};
 let pinTarget = null, pinIn = '';
 
-// ════════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════════
+// ── INIT ──
 function init(){
   showLoad('กำลังเชื่อมต่อระบบออนไลน์...');
   buildEPicker();
   buildER('crEmo',crDraft.emoji,e=>{crDraft.emoji=e;crDraft.photo=null;refreshCrAv();});
   buildCR('crCol',crDraft.color,c=>{crDraft.color=c;if(!crDraft.photo)refreshCrAv();});
   
-  // โหลดรายชื่อผู้ใช้งานจาก Cloud ตลอดเวลา
   db.ref('profiles').on('value', snapshot => {
     const val = snapshot.val();
     profiles = val ? Object.values(val) : [];
@@ -524,7 +519,6 @@ function init(){
     hideLoad();
   });
 
-  // โหลดระบบเช็คออนไลน์จาก Cloud
   db.ref('online').on('value', snapshot => {
     onlineMap = snapshot.val() || {};
     renderMembers();
@@ -537,9 +531,7 @@ function init(){
 
 function hashPin(p){let h=0;for(let c of p){h=((h<<5)-h)+c.charCodeAt(0);h|=0;}return h.toString(36);}
 
-// ════════════════════════════════════════════════════════
-//  SPLASH
-// ════════════════════════════════════════════════════════
+// ── SPLASH ──
 function renderSplash(){
   const el=document.getElementById('profList');
   if(!el) return;
@@ -560,9 +552,7 @@ function renderSplash(){
     </div>`).join('');
 }
 
-// ════════════════════════════════════════════════════════
-//  CREATE PROFILE
-// ════════════════════════════════════════════════════════
+// ── CREATE PROFILE ──
 function goCreate(){
   crDraft={emoji:'😊',color:COLORS[0],photo:null};
   document.getElementById('crName').value='';
@@ -596,9 +586,7 @@ function doCreate(){
   });
 }
 
-// ════════════════════════════════════════════════════════
-//  PIN
-// ════════════════════════════════════════════════════════
+// ── PIN ──
 function goPin(pid){
   const p=profiles.find(x=>x.id===pid);if(!p)return;
   pinTarget=p;pinIn='';updPD();
@@ -621,21 +609,14 @@ function verPin(){
   }
 }
 
-// ════════════════════════════════════════════════════════
-//  ENTER APP
-// ════════════════════════════════════════════════════════
+// ── ENTER APP ──
 function enterApp(prof){
   me=prof;
   showLoad('กำลังเข้าห้องแชทออนไลน์...');
-  
-  // แจ้งเตือนว่าตัวเองออนไลน์อยู่
   db.ref('online/' + me.id).set(Date.now());
-  // เช็คออนไลน์ซ้ำทุกๆ 10 วินาที
   setInterval(() => { if(me) db.ref('online/' + me.id).set(Date.now()); }, 10000);
-  // ถ้าปิดบราวเซอร์ ให้เอาสถานะออนไลน์ออกอัตโนมัติ
   db.ref('online/' + me.id).onDisconnect().remove();
 
-  // ดึงข้อความและคอยฟังข้อความใหม่แบบเรียลไทม์
   db.ref('messages').limitToLast(100).on('value', snapshot => {
     const val = snapshot.val();
     messages = val ? Object.values(val) : [];
@@ -656,18 +637,12 @@ function logout(){
   goSplash();
 }
 
-function goSplash(){
-  me=null; showScr('splash');
-}
-
 function isOnline(pid){
   const t=onlineMap[pid]||0;
   return Date.now()-t < 25000;
 }
 
-// ════════════════════════════════════════════════════════
-//  RENDER SIDEBAR MEMBERS
-// ════════════════════════════════════════════════════════
+// ── RENDER SIDEBAR MEMBERS ──
 function renderMembers(){
   const el=document.getElementById('memberList');if(!el)return;
   const sorted=[...profiles].sort((a,b)=>(isOnline(b.id)?1:0)-(isOnline(a.id)?1:0));
@@ -682,7 +657,7 @@ function renderMembers(){
       </div>
       <div class="m-info">
         <div class="m-name">${escH(p.name)} ${isMe?'<span class="you-badge">คุณ</span>':''}</div>
-        <div class="m-sub">${online?'ออนไลน์ออนไลน์อยู่ตอนนี้':'ออฟไลน์'}</div>
+        <div class="m-sub">${online?'ออนไลน์ตอนนี้':'ออฟไลน์'}</div>
       </div>
     </div>`;
   }).join('');
@@ -702,9 +677,7 @@ function updateChSub(){
   if(sub)sub.textContent=`มีสมาชิกออนไลน์ ${on} คนในห้องตอนนี้`;
 }
 
-// ════════════════════════════════════════════════════════
-//  RENDER MESSAGES
-// ════════════════════════════════════════════════════════
+// ── RENDER MESSAGES ──
 function avMini(p,sz=28,fs=13){
   if(!p)return`<div class="mav ghost"></div>`;
   if(p.photo)return`<div class="mav" style="width:${sz}px;height:${sz}px;overflow:hidden"><img src="${p.photo}"></div>`;
@@ -760,9 +733,7 @@ function renderMsgs(scrollEnd=false){
   if(scrollEnd||wasBottom)setTimeout(()=>list.scrollTop=list.scrollHeight,40);
 }
 
-// ════════════════════════════════════════════════════════
-//  SEND MESSAGES TO CLOUD
-// ════════════════════════════════════════════════════════
+// ── SEND MESSAGES ──
 function sendMsg(){
   const inp=document.getElementById('msgInp');if(!inp||!me)return;
   const text=inp.value.trim();if(!text)return;
@@ -784,9 +755,7 @@ async function sendImg(inp){
   db.ref('messages/' + id).set({id,senderId:me.id,type:'image',data,time:nowT(),timestamp:Date.now()});
 }
 
-// ════════════════════════════════════════════════════════
-//  REACTIONS & REPLY
-// ════════════════════════════════════════════════════════
+// ── REACTIONS & REPLY ──
 function showCtx(e,msgId){
   e.preventDefault();ctxIdx=msgId;
   const m=document.getElementById('ctxM');
@@ -814,9 +783,7 @@ function doReact(msgId,emoji){
 }
 function clrReply(){replyIdx=null;const rb=document.getElementById('replyBar');if(rb)rb.classList.add('off');}
 
-// ════════════════════════════════════════════════════════
-//  EDIT PROFILE
-// ════════════════════════════════════════════════════════
+// ── EDIT PROFILE ──
 function openMeModal(){
   if(!me)return;
   mpDraft={emoji:me.emoji,color:me.color,photo:me.photo||null};
@@ -849,9 +816,7 @@ function saveMP(){
   });
 }
 
-// ════════════════════════════════════════════════════════
-//  OTHER INTERFACE UTILS
-// ════════════════════════════════════════════════════════
+// ── UTILS ──
 function buildEPicker(){document.getElementById('ePick').innerHTML=EMOJIS.map(e=>`<button class="ep" onclick="insE('${e}')">${e}</button>`).join('');}
 function togEP(e){e.stopPropagation();const p=document.getElementById('ePick');const r=e.currentTarget.getBoundingClientRect();p.style.left=r.left+'px';p.style.bottom=(innerHeight-r.top+8)+'px';p.classList.toggle('vis');}
 function insE(e){const inp=document.getElementById('msgInp');if(inp){inp.value+=e;inp.focus();}document.getElementById('ePick').classList.remove('vis');}
@@ -859,7 +824,10 @@ function buildER(id,sel,fn){
   document.getElementById(id).innerHTML=EMOJIS.map((e,i)=>`<div class="eg${e===sel?' sel':''}" data-i="${i}">${e}</div>`).join('');
   document.getElementById(id).querySelectorAll('.eg').forEach(el=>{el.addEventListener('click',()=>fn(EMOJIS[+el.dataset.i]));});
 }
-function buildCR('crCol',crDraft.color,c=>{crDraft.color=c;if(!crDraft.photo)refreshCrAv();});
+function buildCR(id,sel,fn){
+  document.getElementById(id).innerHTML=COLORS.map((c,i)=>`<div class="cs${c===sel?' sel':''}" data-i="${i}" style="background:${c}"></div>`).join('');
+  document.getElementById(id).querySelectorAll('.cs').forEach(el=>{el.addEventListener('click',()=>fn(COLORS[+el.dataset.i]));});
+}
 function openLbox(src){document.getElementById('lboxImg').src=src;document.getElementById('lbox').classList.add('vis');}
 function clsLbox(){document.getElementById('lbox').classList.remove('vis');}
 function openM(id){document.getElementById(id).classList.remove('off');}
